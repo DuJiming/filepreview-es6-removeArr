@@ -1,0 +1,7 @@
+node_modules
+test/pdfs/*
+test/documents/*
+test/thumbnail/*
+package-lock.json
+.vscode
+
