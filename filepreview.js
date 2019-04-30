@@ -17,7 +17,7 @@ module.exports = {
   /**
    * Used promise for creating thumbnail from documents file.
    * Creates a pdf from any document using command line tool unoconv.
-   * Creates a thumbnail from the pdf generated using imagemagic command line tool convert. 
+   * Creates a thumbnail from the pdf generated using imagemagic command line tool convert.
    */
   generateAsync: (input_original, output, options = {}) => new Promise((resolve, reject) => {
 
@@ -102,8 +102,13 @@ module.exports = {
         if (fileType == 'other') {
 
           let tempPDF = path.join(options.pdf_path, fileNameOrignal + '.pdf');
-
-          child_process.execFile('unoconv', ['-e', 'PageRange=1', '-o', tempPDF, input], function (error) {
+          let unoconvParams = ['-e', 'PageRange=1'];
+          if (options.printer) {
+            unoconvParams.push('-P');
+            unoconvParams.push(options.printer);
+          }
+          unoconvParams.push('-o', tempPDF, input);
+          child_process.execFile('unoconv', unoconvParams, function (error) {
             if (error) reject(error);
             let convertOtherArgs = [tempPDF, output];
             if (options.width > 0 && options.height > 0) {
@@ -117,6 +122,10 @@ module.exports = {
             } else if (options.width > 0) {
               convertOtherArgs.splice(0, 0, '-resize', options.width);
             }
+            if (options.density) {
+              convertOtherArgs.splice(0, 0, '-density', options.density);
+            }
+
             if (options.quality) {
               convertOtherArgs.splice(0, 0, '-quality', options.quality);
             }
@@ -231,8 +240,13 @@ module.exports = {
     if (fileType == 'other') {
       try {
         let tempPDF = path.join(options.pdf_path, fileNameOrignal + '.pdf');
-
-        child_process.execFileSync('unoconv', ['-e', 'PageRange=1', '-o', tempPDF, input]);
+        let unoconvParams = ['-e', 'PageRange=1'];
+        if (options.printer) {
+          unoconvParams.push('-P');
+          unoconvParams.push(options.printer);
+        }
+        unoconvParams.push('-o', tempPDF, input);
+        child_process.execFileSync('unoconv', unoconvParams);
 
         let convertOtherArgs = [tempPDF, output];
         if (options.width > 0 && options.height > 0) {
@@ -246,6 +260,9 @@ module.exports = {
         } else if (options.width > 0) {
           convertOtherArgs.splice(0, 0, '-resize', options.width);
         }
+        if (options.density) {
+          convertOtherArgs.splice(0, 0, '-density', options.density);
+        }
         if (options.quality) {
           convertOtherArgs.splice(0, 0, '-quality', options.quality);
         }
@@ -254,7 +271,7 @@ module.exports = {
           convertOtherArgs.splice(0, 0, '-flatten');
         }
         child_process.execFileSync('convert', convertOtherArgs);
-        
+
         if (!options.pdf || options.pdf == undefined) {
           try {
             fs.unlinkSync(tempPDF);
@@ -269,5 +286,5 @@ module.exports = {
       }
     }
   })
-  
+
 };
